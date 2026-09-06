@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Magic Triangle</title>
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#121318">
+    <style>
+        :root {
+            --tb-bg: #121318;
+            --tb-card: #1e2029;
+            --tb-card-border: #2e3240;
+            --tb-accent: #00d2ff;
+            --tb-green: #00e676;
+            --tb-red: #ff5252;
+            --tb-yellow: #ffd600;
+            --tb-orange: #ff9100;
+            --tb-text: #ffffff;
+            --tb-subtext: #90a4ae;
+            --tb-grid-bg: #0d0e12;
+            --tb-input-bg: #282c37;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--tb-bg); color: var(--tb-text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 10px; }
+
+        /* Header */
+        header { width: 100%; max-width: 650px; background: var(--tb-card); border: 1px solid var(--tb-card-border); border-radius: 12px; padding: 12px 18px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        .user-profile { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .user-avatar { width: 36px; height: 36px; background: linear-gradient(135deg, var(--tb-accent), #0072ff); color: #000; font-weight: 800; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+        .user-details .name { font-weight: 700; font-size: 0.95rem; }
+        .user-details .app-tag { font-size: 0.75rem; color: var(--tb-accent); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        .stat-badge-group { display: flex; gap: 10px; }
+        .stat-badge { background: var(--tb-bg); border: 1px solid var(--tb-card-border); padding: 6px 12px; border-radius: 8px; font-weight: 700; font-size: 0.8rem; text-align: center; }
+        .stat-badge span { color: var(--tb-yellow); font-size: 0.95rem; display: block; }
+
+        /* Navigation Bar */
+        .tab-bar { width: 100%; max-width: 650px; display: flex; background: var(--tb-card); border-radius: 10px; padding: 4px; border: 1px solid var(--tb-card-border); margin: 10px 0; }
+        .tab-btn { flex: 1; padding: 10px 0; border: none; background: transparent; color: var(--tb-subtext); font-weight: 700; font-size: 0.7rem; border-radius: 7px; cursor: pointer; transition: 0.2s; text-transform: uppercase; }
+        .tab-btn.active { background: var(--tb-accent); color: #000; }
+
+        /* Main Workspace */
+        .workspace { width: 100%; max-width: 650px; background: var(--tb-card); border: 1px solid var(--tb-card-border); border-radius: 14px; padding: 16px; flex-grow: 1; display: flex; flex-direction: column; align-items: center; box-shadow: 0 6px 20px rgba(0,0,0,0.4); }
+        .view-panel { width: 100%; display: none; flex-direction: column; align-items: center; }
+        .view-panel.active { display: flex; }
+
+        .panel-title { font-size: 1.2rem; font-weight: 800; color: #fff; margin-bottom: 4px; text-transform: uppercase; }
+        .panel-subtitle { font-size: 0.85rem; color: var(--tb-subtext); margin-bottom: 18px; text-align: center; }
+        
+        .tb-btn { width: 100%; padding: 14px; border: none; border-radius: 9px; font-weight: 800; font-size: 0.9rem; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; transition: 0.15s; }
+        .tb-btn:active { transform: scale(0.98); }
+        .tb-btn-primary { background: var(--tb-accent); color: #000; }
+        .tb-btn-outline { background: transparent; border: 1px solid var(--tb-card-border); color: var(--tb-text); }
+        .tb-btn-danger { background: var(--tb-red); color: #fff; }
+
+        /* Home View */
+        .home-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; margin-bottom: 20px; }
+        .home-card { background: var(--tb-grid-bg); border: 1px solid var(--tb-card-border); border-radius: 10px; padding: 18px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; text-align: center; }
+        .home-card:hover { border-color: var(--tb-accent); background: #151821; }
+        .home-card-icon { font-size: 2rem; margin-bottom: 8px; }
+        .home-card-title { font-size: 0.9rem; font-weight: 800; color: #fff; }
+
+        /* Level Selection */
+        .level-list { display: flex; flex-direction: column; gap: 10px; width: 100%; margin-bottom: 15px; }
+        .level-card { background: var(--tb-grid-bg); border: 1px solid var(--tb-card-border); padding: 14px 18px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-left: 5px solid var(--tb-subtext); }
+        .level-card.selected { border-color: var(--tb-accent); background: #16222f; }
+        .level-card.v-easy { border-left-color: var(--tb-yellow); }
+        .level-card.easy { border-left-color: var(--tb-green); }
+        .level-card.medium { border-left-color: var(--tb-orange); }
+        .level-card.hard { border-left-color: var(--tb-red); }
+        .level-info .title { font-weight: 800; font-size: 0.95rem; }
+        .level-info .desc { font-size: 0.75rem; color: var(--tb-subtext); }
+
+        /* Game Board Area */
+        .rule-banner { background: linear-gradient(135deg, #1c2333, #0f172a); border: 1px solid var(--tb-accent); border-radius: 10px; padding: 10px 15px; font-size: 0.85rem; font-weight: 700; color: #fff; margin-bottom: 12px; text-align: center; line-height: 1.3; }
+        .game-status-bar { width: 100%; display: flex; justify-content: space-between; align-items: center; background: var(--tb-grid-bg); padding: 8px 14px; border-radius: 8px; border: 1px solid var(--tb-card-border); margin-bottom: 12px; font-weight: 700; font-size: 0.85rem; }
+
+        /* Pyramid Layout */
+        .pyramid-container { width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 15px 0; min-height: 230px; }
+        .pyramid-row { display: flex; gap: 8px; justify-content: center; }
+
+        .pyr-cell { width: 62px; height: 48px; border-radius: 8px; font-weight: 800; font-size: 1.15rem; display: flex; align-items: center; justify-content: center; text-align: center; }
+        .pyr-given { background: #252a37; color: var(--tb-accent); border: 1px solid #3a4155; }
+        .pyr-input { background: var(--tb-input-bg); border: 2px solid var(--tb-card-border); color: #fff; outline: none; cursor: pointer; transition: 0.2s; }
+        .pyr-input.active-cell { border-color: var(--tb-accent); background: #1c2333; box-shadow: 0 0 8px rgba(0, 210, 255, 0.4); }
+
+        /* Built-in Numpad */
+        .inapp-numpad { width: 100%; background: var(--tb-grid-bg); border: 1px solid var(--tb-card-border); border-radius: 12px; padding: 10px; margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+        .numpad-row { display: flex; gap: 6px; width: 100%; }
+        .np-btn { flex: 1; height: 46px; border: none; border-radius: 8px; background: #222733; color: #fff; font-size: 1.1rem; font-weight: 800; cursor: pointer; }
+        .np-btn:active { background: var(--tb-accent); color: #000; transform: scale(0.96); }
+        .np-btn-act { background: #2e3547; color: var(--tb-yellow); }
+        .np-btn-check { background: var(--tb-green); color: #000; flex: 1.5; }
+
+        .action-row { display: flex; gap: 10px; width: 100%; margin-top: 10px; }
+
+        /* Scorecard Section */
+        .tier-badge-container { width: 100%; background: linear-gradient(135deg, #1f2430, #13161f); border: 1px solid var(--tb-card-border); border-radius: 12px; padding: 14px; display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
+        .tier-icon { width: 50px; height: 50px; background: rgba(255, 214, 0, 0.15); border: 2px solid var(--tb-yellow); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: var(--tb-yellow); }
+        .tier-info .title { font-weight: 800; font-size: 1rem; color: #fff; }
+        .tier-info .sub { font-size: 0.75rem; color: var(--tb-subtext); }
+
+        .score-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; margin-bottom: 15px; }
+        .score-card { background: var(--tb-grid-bg); border: 1px solid var(--tb-card-border); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 6px; border-top: 4px solid var(--tb-subtext); }
+        .score-card.v-easy { border-top-color: var(--tb-yellow); }
+        .score-card.easy { border-top-color: var(--tb-green); }
+        .score-card.medium { border-top-color: var(--tb-orange); }
+        .score-card.hard { border-top-color: var(--tb-red); }
+        .score-card .lbl { font-size: 0.75rem; font-weight: 800; color: #fff; text-transform: uppercase; }
+        .score-card .row { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--tb-subtext); }
+        .score-card .row span { color: #fff; font-weight: 700; }
+
+        /* Achievements List */
+        .achieve-list { width: 100%; display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
+        .achieve-item { background: var(--tb-grid-bg); border: 1px solid var(--tb-card-border); padding: 10px 14px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .achieve-item.unlocked { border-color: var(--tb-green); background: rgba(0, 230, 118, 0.05); }
+        .achieve-item .name { font-weight: 700; font-size: 0.85rem; }
+        .achieve-item .req { font-size: 0.72rem; color: var(--tb-subtext); }
+
+        /* Alerts */
+        .alert-box { width: 100%; padding: 10px; border-radius: 8px; text-align: center; font-weight: 700; font-size: 0.85rem; margin-top: 8px; display: none; }
+        .alert-box.success { background: rgba(0, 230, 118, 0.15); color: var(--tb-green); border: 1px solid var(--tb-green); }
+        .alert-box.error { background: rgba(255, 82, 82, 0.15); color: var(--tb-red); border: 1px solid var(--tb-red); }
+
+        /* Account Management */
+        .account-list { width: 100%; display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
+        .account-item { background: var(--tb-grid-bg); border: 1px solid var(--tb-card-border); padding: 12px 16px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .account-item.active { border-color: var(--tb-accent); }
+        .tb-input-field { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--tb-card-border); background: var(--tb-grid-bg); color: #fff; font-size: 0.9rem; text-align: center; margin-bottom: 10px; outline: none; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="user-profile" onclick="switchTab('account')">
+        <div class="user-avatar" id="avatar-icon">A</div>
+        <div class="user-details">
+            <div class="name" id="user-display-name">Learner 1</div>
+            <div class="app-tag">Welcome</div>
+        </div>
+    </div>
+    <div class="stat-badge-group">
+        <div class="stat-badge">STARS <span id="lbl-stars">0 ★</span></div>
+    </div>
+</header>
+
+<div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('home')">Home</button>
+    <button class="tab-btn" onclick="switchTab('levels')">Levels</button>
+    <button class="tab-btn" onclick="switchTab('game')">Arena</button>
+    <button class="tab-btn" onclick="switchTab('report')">Scorecard</button>
+    <button class="tab-btn" onclick="switchTab('achievements')">Badges</button>
+    <button class="tab-btn" onclick="switchTab('account')">Accounts</button>
+</div>
+
+<div class="workspace">
+    <div id="view-home" class="view-panel active">
+        <div class="panel-title">Addition Magic Triangle</div>
+        <div class="panel-subtitle">Fill in the numbers so each box equals the sum of the two numbers directly below it</div>
+
+        <div class="home-grid">
+            <div class="home-card" onclick="switchTab('game')">
+                <div class="home-card-icon">🔺</div>
+                <div class="home-card-title">Quick Play</div>
+            </div>
+            <div class="home-card" onclick="switchTab('levels')">
+                <div class="home-card-icon">⚡</div>
+                <div class="home-card-title">Select Level</div>
+            </div>
+            <div class="home-card" onclick="switchTab('report')">
+                <div class="home-card-icon">📊</div>
+                <div class="home-card-title">Scorecard</div>
+            </div>
+            <div class="home-card" onclick="switchTab('achievements')">
+                <div class="home-card-icon">🏆</div>
+                <div class="home-card-title">Achievements</div>
+            </div>
+        </div>
+
+        <button class="tb-btn tb-btn-primary" onclick="switchTab('game')">LAUNCH PUZZLE SESSION</button>
+    </div>
+
+    <div id="view-levels" class="view-panel">
+        <div class="panel-title">Select Difficulty</div>
+        <div class="panel-subtitle">Higher levels add additional pyramid rows and larger numbers</div>
+
+        <div class="level-list">
+            <div class="level-card v-easy" id="lvl-btn-0" onclick="selectLevel(0)">
+                <div class="level-info"><div class="title">Very Easy</div><div class="desc">3 Rows | Single Digits | More Clues</div></div>
+                <div class="stat-badge">3 Rows</div>
+            </div>
+            <div class="level-card easy" id="lvl-btn-1" onclick="selectLevel(1)">
+                <div class="level-info"><div class="title">Easy</div><div class="desc">3 Rows | Expanded Numbers | Fewer Clues</div></div>
+                <div class="stat-badge">3 Rows</div>
+            </div>
+            <div class="level-card medium" id="lvl-btn-2" onclick="selectLevel(2)">
+                <div class="level-info"><div class="title">Medium</div><div class="desc">4 Rows | Medium Numbers | Moderate Clues</div></div>
+                <div class="stat-badge">4 Rows</div>
+            </div>
+            <div class="level-card hard" id="lvl-btn-3" onclick="selectLevel(3)">
+                <div class="level-info"><div class="title">Difficult</div><div class="desc">4 Rows | Large Numbers | Minimal Clues</div></div>
+                <div class="stat-badge">4 Rows</div>
+            </div>
+        </div>
+
+        <button class="tb-btn tb-btn-primary" onclick="switchTab('game')">CONFIRM & START</button>
+    </div>
+
+    <div id="view-game" class="view-panel">
+        <div class="rule-banner">Each box must be equal to the sum of the two boxes directly below it.</div>
+
+        <div class="game-status-bar">
+            <div>MODE: <span id="game-lbl-lvl" style="color:var(--tb-accent)">VERY EASY</span></div>
+            <div>TIME: <span id="game-timer" style="color:var(--tb-yellow)">00:00</span></div>
+        </div>
+
+        <div class="pyramid-container" id="pyramid-board"></div>
+
+        <div id="alert" class="alert-box"></div>
+
+        <div class="inapp-numpad">
+            <div class="numpad-row">
+                <button class="np-btn" onclick="npInput('1')">1</button>
+                <button class="np-btn" onclick="npInput('2')">2</button>
+                <button class="np-btn" onclick="npInput('3')">3</button>
+                <button class="np-btn" onclick="npInput('4')">4</button>
+                <button class="np-btn" onclick="npInput('5')">5</button>
+                <button class="np-btn" onclick="npInput('6')">6</button>
+            </div>
+            <div class="numpad-row">
+                <button class="np-btn" onclick="npInput('7')">7</button>
+                <button class="np-btn" onclick="npInput('8')">8</button>
+                <button class="np-btn" onclick="npInput('9')">9</button>
+                <button class="np-btn" onclick="npInput('0')">0</button>
+                <button class="np-btn np-btn-act" onclick="npBackspace()">⌫</button>
+                <button class="np-btn np-btn-act" onclick="npClear()">C</button>
+                <button class="np-btn np-btn-check" onclick="verifySolution()">CHECK</button>
+            </div>
+        </div>
+
+        <div class="action-row">
+            <button class="tb-btn tb-btn-primary" onclick="startNewSession()">NEW GAME</button>
+        </div>
+    </div>
+
+    <div id="view-report" class="view-panel">
+        <div class="panel-title">Scorecard Evaluation</div>
+        <div class="panel-subtitle">Detailed performance metrics across difficulty levels</div>
+
+        <div class="score-grid">
+            <div class="score-card v-easy">
+                <div class="lbl">Very Easy</div>
+                <div class="row">GAMES PLAYED <span id="sc-ve-played">0</span></div>
+                <div class="row">AVG TIME <span id="sc-ve-time">0s</span></div>
+                <div class="row">ACCURACY <span id="sc-ve-acc">0%</span></div>
+            </div>
+            <div class="score-card easy">
+                <div class="lbl">Easy</div>
+                <div class="row">GAMES PLAYED <span id="sc-e-played">0</span></div>
+                <div class="row">AVG TIME <span id="sc-e-time">0s</span></div>
+                <div class="row">ACCURACY <span id="sc-e-acc">0%</span></div>
+            </div>
+            <div class="score-card medium">
+                <div class="lbl">Medium</div>
+                <div class="row">GAMES PLAYED <span id="sc-m-played">0</span></div>
+                <div class="row">AVG TIME <span id="sc-m-time">0s</span></div>
+                <div class="row">ACCURACY <span id="sc-m-acc">0%</span></div>
+            </div>
+            <div class="score-card hard">
+                <div class="lbl">Difficult</div>
+                <div class="row">GAMES PLAYED <span id="sc-d-played">0</span></div>
+                <div class="row">AVG TIME <span id="sc-d-time">0s</span></div>
+                <div class="row">ACCURACY <span id="sc-d-acc">0%</span></div>
+            </div>
+        </div>
+
+        <button class="tb-btn tb-btn-outline" onclick="resetScorecardData()">RESET SCORECARD STATS</button>
+    </div>
+
+    <div id="view-achievements" class="view-panel">
+        <div class="panel-title">Tier Badges</div>
+        <div class="panel-subtitle">Earn stars to unlock milestone achievements</div>
+
+        <div class="tier-badge-container">
+            <div class="tier-icon">★</div>
+            <div class="tier-info">
+                <div class="title" id="ach-tier-name">BEGINNER</div>
+                <div class="sub" id="ach-tier-sub">0 - 50 Stars Required</div>
+            </div>
+        </div>
+
+        <div class="achieve-list" id="achieve-list-container"></div>
+    </div>
+
+    <div id="view-account" class="view-panel">
+        <div class="panel-title">Manage Accounts</div>
+        <div class="panel-subtitle">Switch profile or register a new learner</div>
+
+        <div class="account-list" id="account-list-container"></div>
+
+        <input type="text" id="input-new-account" class="tb-input-field" placeholder="Enter New Learner Name" />
+        <button class="tb-btn tb-btn-primary" style="margin-bottom: 10px;" onclick="createAccount()">ADD NEW PROFILE</button>
+        <button class="tb-btn tb-btn-danger" onclick="deleteCurrentAccount()">DELETE CURRENT PROFILE</button>
+    </div>
+</div>
+
+<script>
+    const LEVEL_KEYS = ['very_easy', 'easy', 'medium', 'difficult'];
+    const LEVEL_LABELS = ['Very Easy', 'Easy', 'Medium', 'Difficult'];
+
+    let db = JSON.parse(localStorage.getItem('tb_magic_tri_db')) || {
+        activeUser: 'Learner 1',
+        users: {
+            'Learner 1': {
+                selectedLevel: 0,
+                stars: 0,
+                stats: {
+                    very_easy: { played: 0, solved: 0, totalTime: 0 },
+                    easy: { played: 0, solved: 0, totalTime: 0 },
+                    medium: { played: 0, solved: 0, totalTime: 0 },
+                    difficult: { played: 0, solved: 0, totalTime: 0 }
+                }
+            }
+        }
+    };
+
+    let sessionTimer = null;
+    let secondsElapsed = 0;
+    let currentPyramid = [];
+    let selectedInputId = null;
+
+    function saveDB() {
+        localStorage.setItem('tb_magic_tri_db', JSON.stringify(db));
+        refreshHeaderUI();
+    }
+
+    function getCurrentUserData() {
+        if (!db.users[db.activeUser]) {
+            db.users[db.activeUser] = {
+                selectedLevel: 0,
+                stars: 0,
+                stats: {
+                    very_easy: { played: 0, solved: 0, totalTime: 0 },
+                    easy: { played: 0, solved: 0, totalTime: 0 },
+                    medium: { played: 0, solved: 0, totalTime: 0 },
+                    difficult: { played: 0, solved: 0, totalTime: 0 }
+                }
+            };
+        }
+        return db.users[db.activeUser];
+    }
+
+    function refreshHeaderUI() {
+        const user = getCurrentUserData();
+        document.getElementById('user-display-name').innerText = db.activeUser;
+        document.getElementById('avatar-icon').innerText = db.activeUser.charAt(0).toUpperCase();
+        document.getElementById('lbl-stars').innerText = `${user.stars} ★`;
+        
+        document.querySelectorAll('.level-card').forEach(c => c.classList.remove('selected'));
+        const activeCard = document.getElementById(`lvl-btn-${user.selectedLevel}`);
+        if (activeCard) activeCard.classList.add('selected');
+    }
+
+    function switchTab(tabName) {
+        document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        
+        document.getElementById(`view-${tabName}`).classList.add('active');
+        
+        const btns = document.querySelectorAll('.tab-btn');
+        const map = { 'home': 0, 'levels': 1, 'game': 2, 'report': 3, 'achievements': 4, 'account': 5 };
+        if (btns[map[tabName]]) btns[map[tabName]].classList.add('active');
+
+        if (tabName === 'game') {
+            if (!sessionTimer) startNewSession();
+        } else {
+            stopTimer();
+        }
+
+        if (tabName === 'report') renderScorecard();
+        if (tabName === 'achievements') renderAchievements();
+        if (tabName === 'account') renderAccountList();
+    }
+
+    function startTimer() {
+        stopTimer();
+        secondsElapsed = 0;
+        document.getElementById('game-timer').innerText = "00:00";
+        sessionTimer = setInterval(() => {
+            secondsElapsed++;
+            const m = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
+            const s = String(secondsElapsed % 60).padStart(2, '0');
+            document.getElementById('game-timer').innerText = `${m}:${s}`;
+        }, 1000);
+    }
+
+    function stopTimer() {
+        if (sessionTimer) {
+            clearInterval(sessionTimer);
+            sessionTimer = null;
+        }
+    }
+
+    function selectLevel(lvlIndex) {
+        const user = getCurrentUserData();
+        user.selectedLevel = lvlIndex;
+        saveDB();
+        switchTab('game');
+        startNewSession();
+    }
+
+    function generatePyramid(rows, maxBaseValue) {
+        let pyr = [];
+        let baseRow = [];
+        for (let i = 0; i < rows; i++) {
+            baseRow.push(Math.floor(Math.random() * maxBaseValue) + 1);
+        }
+        pyr.push(baseRow);
+
+        for (let r = 1; r < rows; r++) {
+            let prevRow = pyr[r - 1];
+            let nextRow = [];
+            for (let c = 0; c < prevRow.length - 1; c++) {
+                nextRow.push(prevRow[c] + prevRow[c + 1]);
+            }
+            pyr.push(nextRow);
+        }
+        pyr.reverse(); // Top row index 0, bottom row index rows-1
+        return pyr;
+    }
+
+    function startNewSession() {
+        clearAlert();
+        startTimer();
+        selectedInputId = null;
+        const user = getCurrentUserData();
+        const container = document.getElementById('pyramid-board');
+        container.innerHTML = '';
+
+        document.getElementById('game-lbl-lvl').innerText = LEVEL_LABELS[user.selectedLevel].toUpperCase();
+
+        let numRows = 3, maxBase = 9, givenRatio = 0.5;
+        if (user.selectedLevel === 0) { numRows = 3; maxBase = 6; givenRatio = 0.6; }
+        else if (user.selectedLevel === 1) { numRows = 3; maxBase = 12; givenRatio = 0.45; }
+        else if (user.selectedLevel === 2) { numRows = 4; maxBase = 10; givenRatio = 0.45; }
+        else { numRows = 4; maxBase = 20; givenRatio = 0.35; }
+
+        currentPyramid = generatePyramid(numRows, maxBase);
+
+        // Flatten cells to select which ones are given clues
+        let cellCoords = [];
+        for (let r = 0; r < numRows; r++) {
+            for (let c = 0; c <= r; c++) {
+                cellCoords.push({ r, c });
+            }
+        }
+        
+        let totalCells = cellCoords.length;
+        let clueCount = Math.max(2, Math.round(totalCells * givenRatio));
+        cellCoords.sort(() => Math.random() - 0.5);
+        let clues = cellCoords.slice(0, clueCount);
+
+        for (let r = 0; r < numRows; r++) {
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'pyramid-row';
+
+            for (let c = 0; c <= r; c++) {
+                const isClue = clues.some(cl => cl.r === r && cl.c === c);
+                if (isClue) {
+                    const cell = document.createElement('div');
+                    cell.className = 'pyr-cell pyr-given';
+                    cell.innerText = currentPyramid[r][c];
+                    rowDiv.appendChild(cell);
+                } else {
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.readOnly = true;
+                    input.className = 'pyr-cell pyr-input';
+                    input.id = `pyr-${r}-${c}`;
+                    input.dataset.row = r;
+                    input.dataset.col = c;
+                    
+                    input.addEventListener('click', () => {
+                        document.querySelectorAll('.pyr-input').forEach(i => i.classList.remove('active-cell'));
+                        input.classList.add('active-cell');
+                        selectedInputId = input.id;
+                    });
+
+                    rowDiv.appendChild(input);
+                }
+            }
+            container.appendChild(rowDiv);
+        }
+
+        const firstInput = document.querySelector('.pyr-input');
+        if (firstInput) {
+            firstInput.classList.add('active-cell');
+            selectedInputId = firstInput.id;
+        }
+    }
+
+    function npInput(val) {
+        if (!selectedInputId) return;
+        const input = document.getElementById(selectedInputId);
+        if (input && input.value.length < 3) {
+            input.value += val;
+        }
+    }
+
+    function npBackspace() {
+        if (!selectedInputId) return;
+        const input = document.getElementById(selectedInputId);
+        if (input) input.value = input.value.slice(0, -1);
+    }
+
+    function npClear() {
+        if (!selectedInputId) return;
+        const input = document.getElementById(selectedInputId);
+        if (input) input.value = '';
+    }
+
+    function verifySolution() {
+        const user = getCurrentUserData();
+        const levelKey = LEVEL_KEYS[user.selectedLevel];
+        const userStats = user.stats[levelKey];
+
+        let numRows = currentPyramid.length;
+        let userGrid = [];
+        let isComplete = true;
+
+        for (let r = 0; r < numRows; r++) {
+            userGrid[r] = [];
+            for (let c = 0; c <= r; c++) {
+                const inp = document.getElementById(`pyr-${r}-${c}`);
+                if (inp) {
+                    const val = parseInt(inp.value, 10);
+                    if (isNaN(val)) isComplete = false;
+                    else userGrid[r][c] = val;
+                } else {
+                    userGrid[r][c] = currentPyramid[r][c];
+                }
+            }
+        }
+
+        if (!isComplete) {
+            showAlert('Please fill in all empty boxes.', 'error');
+            return;
+        }
+
+        userStats.played++;
+
+        // Verify pyramid addition rule
+        let isValid = true;
+        for (let r = 0; r < numRows - 1; r++) {
+            for (let c = 0; c <= r; c++) {
+                let current = userGrid[r][c];
+                let leftBelow = userGrid[r + 1][c];
+                let rightBelow = userGrid[r + 1][c + 1];
+                if (current !== leftBelow + rightBelow) {
+                    isValid = false;
+                    break;
+                }
+            }
+        }
+
+        if (isValid) {
+            stopTimer();
+            userStats.solved++;
+            userStats.totalTime += secondsElapsed;
+            user.stars += (user.selectedLevel + 1) * 2;
+            
+            saveDB();
+            showAlert(`CORRECT! Earned +${(user.selectedLevel + 1) * 2} Stars!`, 'success');
+        } else {
+            saveDB();
+            showAlert('Some sums do not match! Remember: each box must equal the sum of the two boxes below it.', 'error');
+        }
+    }
+
+    function showAlert(msg, type) {
+        const box = document.getElementById('alert');
+        box.innerText = msg;
+        box.className = `alert-box ${type}`;
+        box.style.display = 'block';
+    }
+
+    function clearAlert() {
+        const box = document.getElementById('alert');
+        box.style.display = 'none';
+    }
+
+    function renderScorecard() {
+        const user = getCurrentUserData();
+        const map = [
+            { key: 'very_easy', p: 'sc-ve-played', t: 'sc-ve-time', a: 'sc-ve-acc' },
+            { key: 'easy', p: 'sc-e-played', t: 'sc-e-time', a: 'sc-e-acc' },
+            { key: 'medium', p: 'sc-m-played', t: 'sc-m-time', a: 'sc-m-acc' },
+            { key: 'difficult', p: 'sc-d-played', t: 'sc-d-time', a: 'sc-d-acc' }
+        ];
+
+        map.forEach(item => {
+            const st = user.stats[item.key];
+            document.getElementById(item.p).innerText = st.played;
+            const avg = st.solved > 0 ? Math.round(st.totalTime / st.solved) : 0;
+            document.getElementById(item.t).innerText = `${avg}s`;
+            const acc = st.played > 0 ? Math.round((st.solved / st.played) * 100) : 0;
+            document.getElementById(item.a).innerText = `${acc}%`;
+        });
+    }
+
+    function resetScorecardData() {
+        const user = getCurrentUserData();
+        LEVEL_KEYS.forEach(k => {
+            user.stats[k] = { played: 0, solved: 0, totalTime: 0 };
+        });
+        saveDB();
+        renderScorecard();
+    }
+
+    function renderAchievements() {
+        const user = getCurrentUserData();
+        const stars = user.stars;
+
+        let tier = "BEGINNER";
+        let sub = "0 - 50 Stars Required";
+        if (stars >= 1000) { tier = "PLATINUM"; sub = "1000+ Stars Reached"; }
+        else if (stars >= 501) { tier = "GOLD"; sub = "501 - 1000 Stars"; }
+        else if (stars >= 201) { tier = "SILVER"; sub = "201 - 500 Stars"; }
+        else if (stars >= 51) { tier = "BRONZE"; sub = "51 - 200 Stars"; }
+
+        document.getElementById('ach-tier-name').innerText = tier;
+        document.getElementById('ach-tier-sub').innerText = sub;
+
+        const badges = [
+            { name: "Triangle Apprentice", req: 0 },
+            { name: "Pyramid Master", req: 51 },
+            { name: "Silver Calculator", req: 201 },
+            { name: "Gold Addition Virtuoso", req: 501 },
+            { name: "Platinum Pyramid Legend", req: 1000 }
+        ];
+
+        const container = document.getElementById('achieve-list-container');
+        container.innerHTML = '';
+        badges.forEach(b => {
+            const unlocked = stars >= b.req;
+            const div = document.createElement('div');
+            div.className = `achieve-item ${unlocked ? 'unlocked' : ''}`;
+            div.innerHTML = `
+                <div>
+                    <div class="name">${b.name}</div>
+                    <div class="req">${b.req} Stars required</div>
+                </div>
+                <div>${unlocked ? '✅ Unlocked' : '🔒 Locked'}</div>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    function renderAccountList() {
+        const container = document.getElementById('account-list-container');
+        container.innerHTML = '';
+        Object.keys(db.users).forEach(u => {
+            const div = document.createElement('div');
+            div.className = `account-item ${u === db.activeUser ? 'active' : ''}`;
+            div.innerHTML = `
+                <span style="font-weight:700">${u}</span>
+                <span style="font-size:0.75rem; color:var(--tb-yellow)">${db.users[u].stars} ★</span>
+            `;
+            div.onclick = () => {
+                db.activeUser = u;
+                saveDB();
+                renderAccountList();
+            };
+            container.appendChild(div);
+        });
+    }
+
+    function createAccount() {
+        const field = document.getElementById('input-new-account');
+        const name = field.value.trim();
+        if (name && !db.users[name]) {
+            db.users[name] = {
+                selectedLevel: 0,
+                stars: 0,
+                stats: {
+                    very_easy: { played: 0, solved: 0, totalTime: 0 },
+                    easy: { played: 0, solved: 0, totalTime: 0 },
+                    medium: { played: 0, solved: 0, totalTime: 0 },
+                    difficult: { played: 0, solved: 0, totalTime: 0 }
+                }
+            };
+            db.activeUser = name;
+            field.value = '';
+            saveDB();
+            renderAccountList();
+        }
+    }
+
+    function deleteCurrentAccount() {
+        if (Object.keys(db.users).length <= 1) {
+            alert("Cannot delete the only remaining profile.");
+            return;
+        }
+
+        if (confirm(`Are you sure you want to delete profile "${db.activeUser}"?`)) {
+            delete db.users[db.activeUser];
+            db.activeUser = Object.keys(db.users)[0];
+            saveDB();
+            renderAccountList();
+        }
+    }
+
+    refreshHeaderUI();
+</script>
+
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js');
+        });
+    }
+</script>
+</body>
+</html>
